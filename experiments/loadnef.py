@@ -13,7 +13,7 @@ tf.compat.v1.disable_v2_behavior()
 phone, dped_dir, test_subset, iteration, resolution, use_gpu = utils.process_test_model_args(
     sys.argv)
 
-dped_dir = f"DPED/{dped_dir}"
+dped_dir = f"../DPED/{dped_dir}"
 output_folder = f"DPED"
 models_folder = "DPED/models_orig"
 

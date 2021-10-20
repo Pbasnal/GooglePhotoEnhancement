@@ -16,7 +16,7 @@ def processPhoto(arguments, image_scale=1):
     # phone, dped_dir, test_subset, iteration, resolution, use_gpu = utils.process_test_model_args(sys.argv)
     phone, dped_dir, _, _, _, use_gpu = utils.process_test_model_args(
         arguments)
-    dped_dir = "DPED/" + dped_dir
+    dped_dir = "./DPED/" + dped_dir
     # disable gpu if specified
     config = tf.compat.v1.ConfigProto(
         device_count={'GPU': 0}) if use_gpu == "false" else None
@@ -113,6 +113,7 @@ def getPhotoToEnhance(test_dir):
         print(f"#>  Input image: {test_dir + photo}")
         if photo.endswith(".NEF"):
             raw = rawpy.imread(test_dir + photo)
+            print(test_dir + photo)
             rgb = raw.postprocess()
             print(f"\n\n#>  rbg shape: {rgb.shape} {rgb.dtype}")
         elif photo.endswith(".jpg") or photo.endswith(".jpeg") or photo.endswith(".png"):
@@ -132,4 +133,4 @@ def getImageDimensions(photo_data, image_scale):
 
 
 if __name__ == "__main__":
-    processPhoto(sys.argv, 0.5)
+    processPhoto(sys.argv, 1)
