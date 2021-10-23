@@ -1,10 +1,10 @@
 # * This file is an experiment file
-
 from GoogleMediaItem import GoogleMediaItem
+from PhotoData import PhotoData
 from gphotospy.album import *
 from gphotospy.media import *
 from authorizegoogle import getAuthorizedService
-from cacheservice import FileCacheService
+from cacheservice import CacheService, FileCacheService
 
 def getAllPhotosFromGoogle(service, album_id):
     media_manager = Media(service)
@@ -17,31 +17,27 @@ def getAllPhotosFromGoogle(service, album_id):
         yield media_item
 
 
-def cachePhotoIds(googleService, cacheService, album_id):
+def cachePhotoIds(googleService, cacheService : CacheService, album_id):
     for googlePhoto in getAllPhotosFromGoogle(googleService, album_id):
-        id = googlePhoto.id()
-        photo_name = googlePhoto.filename()
-        photo_height = googlePhoto.metadata()["height"]
-        photo_width = googlePhoto.metadata()["width"]
 
-        id_json = f"\"id\": \"{id}\""
-        name_json = f"\"name\": \"{photo_name}\""
-        height_json = f"\"height\": \"{photo_height}\""
-        width_json = f"\"width\": \"{photo_width}\""
+        photoData = PhotoData(googlePhoto.id(), 
+                    googlePhoto.filename(),
+                    googlePhoto.metadata()["height"],
+                    googlePhoto.metadata()["width"],
+                    False)
 
-        photo_json = f"{{ {id_json}, {name_json}, {height_json}, {width_json} }}"
-        cacheService.save(id, photo_json, is_json=True)
+        cacheService.save(photoData.id, photoData)
 
         yield googlePhoto
 
-def cachePhotoMetaOfAlbum(googleService, albumPhotoCacheService, photoCacheService, album_id):
+def cachePhotoMetaOfAlbum(googleService, albumPhotoCache, photoCache, album_id):
     print("Starting photo caching")
 
     photoIds = []
-    for googlePhoto in cachePhotoIds(googleService, photoCacheService, album_id):
+    for googlePhoto in cachePhotoIds(googleService, photoCache, album_id):
         photoIds.append(googlePhoto.id())
     
-    albumPhotoCacheService.save(album_id, json.dumps(photoIds), is_json=True)
+    albumPhotoCache.save(album_id, json.dumps(photoIds), is_json=True)
 
 if __name__ == "__main__":
     googleService = getAuthorizedService()
