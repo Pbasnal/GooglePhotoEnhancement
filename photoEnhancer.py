@@ -119,10 +119,9 @@ def enhancePhoto(photo: GoogleMediaItem):
                         photo.metadata()["width"],
                         True)
     with DictCache("photoCache.json") as photoCache:
-        # print(photoData.toString())
         photoCache.save(photo.id(), photoData)
 
-    enhancedPhotoPath = os.path.join(ENHANCED_PHOTO_FOLDER, photo.filename())
+    enhancedPhotoPath = os.path.join(ENHANCED_PHOTO_FOLDER, photo_filename)
     shutil.move(download_path, enhancedPhotoPath)
 
 
