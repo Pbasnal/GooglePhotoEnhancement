@@ -114,6 +114,9 @@ def enhancePhoto(photo: GoogleMediaItem):
         f"runmodel stdout> {process.stdout} \nrunmodel stderr> {process.stderr}\n")
     print(f"runmodel returncode> {process.returncode}")
 
+    if process.returncode != 0:
+        return
+
     photoData = PhotoData(photo.id(), 
                         photo_filename,
                         photo.metadata()["height"],
