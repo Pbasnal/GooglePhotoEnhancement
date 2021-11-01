@@ -147,8 +147,6 @@ def main():
     for photoId in photoIds:
         base_photo = mediaManager.get(photoId)
         photo = GoogleMediaItem(base_photo)
-        if "012" in photo.filename() or "013" in photo.filename():
-            continue
         enhancePhoto(photo)
 
 
