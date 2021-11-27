@@ -19,7 +19,8 @@ def getAuthorizedService():
     try:
         return authorize.init(CLIENT_SECRET_FILE)
     except :
-        os.remove("photoslibrary_v1.token")
+        if os.path.exists("photoslibrary_v1.token"):
+            os.remove("photoslibrary_v1.token")
     return authorize.init(CLIENT_SECRET_FILE)
 
 class HelloWorld(Resource):
