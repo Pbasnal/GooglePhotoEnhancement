@@ -36,4 +36,4 @@ jobs:
           app-name: thephotosapp
           # Applies to Web App only: Path to package or folder. *.zip, *.war, *.jar or a folder to deploy
           package: ./
-          startup-command: export GOOGLE_CLIENT_CREDENTIAL=${{ GOOGLE_CLIENT_CREDENTIAL }} && ./run_api.sh
+          startup-command: export GOOGLE_CLIENT_CREDENTIAL=${{ secrets.GOOGLE_CLIENT_CREDENTIAL }} && ./run_api.sh
