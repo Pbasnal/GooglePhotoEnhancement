@@ -1,15 +1,20 @@
 import pickle
 
+
 class CacheService:
     def save(self, id, data, isJson=False):
         data = f"{{ \"id\": \"{id}\", \"data\": \"{data}\"    }}"
         print(data)
-    
+
     def get(self):
         return ""
 
+
 class DictCache(CacheService):
     def __init__(self, cacheFilePath):
+        with open(cacheFilePath, "w+") as _:
+            # To create the file if it doesn't exists
+            pass
         self.cacheFilePath = cacheFilePath
         self.cache = dict()
 
@@ -30,7 +35,7 @@ class DictCache(CacheService):
     def get(self):
         for cacheKey in self.cache.keys():
             yield cacheKey, self.cache[cacheKey]
-    
+
     def save(self, id, data, is_json=False):
         self.cache[id] = data
 
@@ -38,6 +43,9 @@ class DictCache(CacheService):
 class FileCacheService(CacheService):
 
     def __init__(self, cacheFilePath, mode):
+        with open(cacheFilePath, "w+") as _:
+            # To create the file if it doesn't exists
+            pass
         self.cacheFilePath = cacheFilePath
         self.mode = mode
         self.pos = 0
@@ -56,7 +64,7 @@ class FileCacheService(CacheService):
             if line == "":
                 break
             yield line.rstrip()
-    
+
     def resetReadHead(self):
         self.pos = 0
 

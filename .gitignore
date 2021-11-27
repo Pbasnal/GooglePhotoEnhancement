@@ -1,5 +1,5 @@
 venv/*
-__pycache__/*
+*.pyc
 *.NEF
 *.jpg
 *.png
@@ -10,3 +10,4 @@ albumCache.json
 albumPhotoMapCache.json
 photoCache.json
 google_secret_desktop*
+google_web_secret.json
