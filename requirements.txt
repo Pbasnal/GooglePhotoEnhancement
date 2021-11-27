@@ -3,3 +3,4 @@ rawpy
 imageio
 tensorflow
 scipy
+Flask-RESTful==0.3.9
