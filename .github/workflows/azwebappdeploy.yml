@@ -27,13 +27,7 @@ jobs:
         uses: Azure/login@v1.4.1
         with:
           # Paste output of `az ad sp create-for-rbac` as value of secret variable: AZURE_CREDENTIALS
-          creds: ${{ secrets.AZURE_SERVICE_PASSWORD }}
-          # ClientId of the Azure Service principal created.
-          client-id: ${{ secrets.AZURE_SERVICE_APP_ID }}
-          # TenantId of the Azure Service principal created.
-          tenant-id: ${{ secrets.AZURE_SERVICE_TENANT }}
-          # Azure subscriptionId
-          subscription-id: 59b69340-4557-4c1e-8880-2d83d739b60f
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Azure WebApp
         uses: Azure/webapps-deploy@v2
