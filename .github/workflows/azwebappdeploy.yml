@@ -36,4 +36,4 @@ jobs:
           app-name: thephotosapp
           # Applies to Web App only: Path to package or folder. *.zip, *.war, *.jar or a folder to deploy
           package: ./
-          startup-command: ./run-api.sh
+          startup-command: pwd && ./run-api.sh
