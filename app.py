@@ -2,7 +2,7 @@ from logging import debug
 from flask import Flask, request
 from flask_restful import Resource, Api
 from GoogleMediaItem import GoogleMediaItem
-# from gphotospy import authorize
+from gphotospy import authorize
 import os
 from loadalbums import getAllAlbumsFromGoogle
 from photoEnhancer import loadListOfAlbumsFromCache
