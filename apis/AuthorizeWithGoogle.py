@@ -1,26 +1,43 @@
-import os
 import google
 import google_auth_oauthlib.flow
 import config
 
 from app import db, app
-from flask_sqlalchemy import SQLAlchemy
-from flask import Flask, redirect, url_for, session, request
-from flask_restful import Resource, Api
-from gphotospy import authorize
+from flask import redirect, url_for, session, request
+from flask_restful import Resource
+from googleapiclient.discovery import build
 
 
-def getAuthorizedService():
+def getGooglePhotoService(userId):
+
+    from UserAuth import UserOauth
+
+    user = UserOauth.query.filter(UserOauth.id == userId).one()
+    service_object = {
+        "secrets": config.CLIENT_SECRET_FILE
+    }
+    credentials = credentials_from_user(user)
     try:
-        if not os.path.exists(config.CLIENT_SECRET_FILE):
-            with open(config.CLIENT_SECRET_FILE, "w") as f:
-                f.write(os.environ[config.CLIENT_SECRET_ENV])
+        service = build(config.API_SERVICE_NAME, config.API_VERSION,
+                        static_discovery=False, credentials=credentials)
+        service_object["service"] = service
+        return service_object
+    except Exception as e:
+        print(e)
+    return None
 
-        return authorize.init(config.CLIENT_SECRET_FILE)
-    except:
-        if os.path.exists("photoslibrary_v1.token"):
-            os.remove("photoslibrary_v1.token")
-    return authorize.init(config.CLIENT_SECRET_FILE)
+def credentials_from_user(user):
+    scopes = []
+    for scope in user.scopes.split(','):
+        scope = 'https://www.googleapis.com/auth/' + scope
+        scopes.append(scope)
+
+    return google.oauth2.credentials.Credentials(
+        user.token,
+        refresh_token=user.refresh_token,
+        token_uri=user.token_uri,
+        client_id=user.client_id,
+        client_secret=user.client_secret)
 
 @app.route('/oauth2callback')
 def oauth2callback():
