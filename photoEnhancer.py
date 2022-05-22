@@ -1,6 +1,7 @@
 import json
 import subprocess
 import shutil
+from subprocess import PIPE
 from PhotoData import PhotoData
 from GoogleMediaItem import GoogleMediaItem
 from authorizegoogle import getAuthorizedService
@@ -107,7 +108,7 @@ def enhancePhoto(photo: GoogleMediaItem):
     # * directly calll the processPhoto method.
     print(f"\n\n Enhancing photo {photo.filename()}")
     command = "python runmodel.py model=iphone_orig test_subset=full".split()
-    process = subprocess.run(command, capture_output=True, text=True)
+    process = subprocess.run(command,stdout=PIPE, stderr=PIPE)
 
     print(
         f"runmodel stdout> {process.stdout} \nrunmodel stderr> {process.stderr}\n")
@@ -143,7 +144,6 @@ def main():
         base_photo = mediaManager.get(photoId)
         photo = GoogleMediaItem(base_photo)
         enhancePhoto(photo)
-        break
 
 
 if __name__ == "__main__":
