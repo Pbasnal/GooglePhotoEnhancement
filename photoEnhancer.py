@@ -114,6 +114,9 @@ def enhancePhoto(photo: GoogleMediaItem):
         f"runmodel stdout> {process.stdout} \nrunmodel stderr> {process.stderr}\n")
     print(f"runmodel returncode> {process.returncode}")
 
+    enhancedPhotoPath = os.path.join(ENHANCED_PHOTO_FOLDER, photo_filename)
+    shutil.move(download_path, enhancedPhotoPath)
+    
     if process.returncode != 0:
         return
 
@@ -125,8 +128,6 @@ def enhancePhoto(photo: GoogleMediaItem):
     with DictCache("photoCache.json") as photoCache:
         photoCache.save(photo.id(), photoData)
 
-    enhancedPhotoPath = os.path.join(ENHANCED_PHOTO_FOLDER, photo_filename)
-    shutil.move(download_path, enhancedPhotoPath)
 
 
 def main():
@@ -146,6 +147,8 @@ def main():
     for photoId in photoIds:
         base_photo = mediaManager.get(photoId)
         photo = GoogleMediaItem(base_photo)
+        if "012" in photo.filename() or "013" in photo.filename():
+            continue
         enhancePhoto(photo)
 
 
