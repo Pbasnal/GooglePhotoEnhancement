@@ -12,7 +12,7 @@ class CacheService:
 
 class DictCache(CacheService):
     def __init__(self, cacheFilePath):
-        with open(cacheFilePath, "w+") as _:
+        with open(cacheFilePath, "ab+") as _:
             # To create the file if it doesn't exists
             pass
         self.cacheFilePath = cacheFilePath
@@ -24,11 +24,12 @@ class DictCache(CacheService):
             if not cachedData.strip():
                 return self
             self.cache = pickle.loads(cachedData)
+            # print(self.cache)
+            # self.cache = json.loads(cachedData)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         with open(self.cacheFilePath, "wb") as cacheFile:
-            # print(f"Data to serialize {self.cache}")
             serializedData = pickle.dumps(self.cache)
             cacheFile.write(serializedData)
 
@@ -38,7 +39,6 @@ class DictCache(CacheService):
 
     def save(self, id, data, is_json=False):
         self.cache[id] = data
-
 
 class FileCacheService(CacheService):
 

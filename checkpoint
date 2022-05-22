@@ -1,0 +1,2 @@
+model_checkpoint_path: "iphone_model_pb_test"
+all_model_checkpoint_paths: "iphone_model_pb_test"

@@ -1,56 +1,26 @@
-from logging import debug
-from flask import Flask, request
-from flask_restful import Resource, Api
-from GoogleMediaItem import GoogleMediaItem
-from gphotospy import authorize
 import os
-from loadalbums import getAllAlbumsFromGoogle
-from photoEnhancer import loadListOfAlbumsFromCache
+
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
+from flask_restful import Api
 
 app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+db = SQLAlchemy(app)
 api = Api(app)
 
-CLIENT_SECRET_ENV = "GOOGLE_CLIENT_CREDENTIAL"
-DOWNLOAD_FOLDER = "DPED/dped/iphone/test_data/full_size_test_images"
-PROCESSED_FOLDER = "DPED/dped/iphone/test_data"
-CLIENT_SECRET_FILE = "google_web_secret.json"
 
-def getAuthorizedService():  
-    try:
-        if not os.path.exists(CLIENT_SECRET_FILE):
-            with open(CLIENT_SECRET_FILE, "w") as f:
-                f.write(os.environ[CLIENT_SECRET_ENV])
-            
-        return authorize.init(CLIENT_SECRET_FILE)
-    except :
-        if os.path.exists("photoslibrary_v1.token"):
-            os.remove("photoslibrary_v1.token")
-    return authorize.init(CLIENT_SECRET_FILE)
-
-class HelloWorld(Resource):
-    def get(self):
-        print("Hello world")
-        return {"hello": "world"}
-
-class AuthorizeWithGoogle(Resource):
-    def get(self):
-        return getAuthorizedService()
-
-class PhotoAlbums(Resource):
-    def get(self):
-        googleService = getAuthorizedService()
-        albumIdMap = loadListOfAlbumsFromCache(googleService)
-        if bool(albumIdMap) == False:
-            albumIdMap = loadListOfAlbumsFromCache(googleService, True)
-
-        if bool(albumIdMap) == False:
-            print(f"No album Id to process photos of")
-            
-        return albumIdMap
+from apis.PhotoAlbums import PhotoAlbums
+from apis.HelloWorld import HelloWorld
+from apis.AuthorizeWithGoogle import AuthorizeWithGoogle
 
 api.add_resource(AuthorizeWithGoogle, '/auth')
 api.add_resource(PhotoAlbums, '/albums')
 api.add_resource(HelloWorld, '/')
 
 if __name__ == '__main__':
+    # app.run('localhost', 8080, debug=True, ssl_context="adhoc")
     app.run()
