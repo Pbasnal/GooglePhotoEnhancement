@@ -52,7 +52,6 @@ def loadPhotoIdsOfAlbum(googleService, albumId, force_refresh_photoid_map=False)
 
     with DictCache("albumPhotoMapCache.json") as albumPhotoMapCacheService:
         for cacheKey, line in albumPhotoMapCacheService.get():
-            # print(f"\nKey: {cacheKey} \n<> Data: {line}")
             albumPhotoMap = json.loads(line)
             if cacheKey == albumId:
                 return albumPhotoMap
@@ -79,6 +78,12 @@ def getPhotoIds(googleService, ablumId):
 
     if len(photoIds) == 0:
         print("Photos of selected album doesn't have any photos")
+
+    with DictCache("photoCache.json") as photoCache:
+        for photoId, photoData in photoCache.get():
+            if photoId in photoIds and photoData.enhanced == True:
+                photoIds.remove(photoId)
+                print(f"Removing photoId {photoId}")
 
     return photoIds
 
