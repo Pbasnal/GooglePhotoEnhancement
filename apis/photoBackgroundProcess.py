@@ -3,7 +3,6 @@ import numpy as np
 from cacheservice import DictCache
 from apis.AuthorizeWithGoogle import getGooglePhotoService
 from gphotospy.media import *
-from PhotoData import PhotoData
 from imagehash import ImageHash
 import imagehash
 from PIL import Image
@@ -14,63 +13,62 @@ PHOTO_TASK_FILE = "photoTask.json"
 DOWNLOAD_FOLDER = "DPED/dped/iphone/test_data/full_size_test_images"
 
 def registerMessageListener(channel):
+    print(f"Registering listener processPhotosOfAlbum")
     channel.basic_consume(queue=PHOTO_QUEUE, on_message_callback=processPhotosOfAlbum, auto_ack=True)
 
-def processPhotosOfAlbum(consumer, eventMethod, eventProperties, serialisedMessage):
+def processPhotosOfAlbum(ch, method, properties, serialisedMessage):
     print(f"Recieved {serialisedMessage}")
-    googleService = getGooglePhotoService(userId)
-    mediaManager = Media(googleService)
 
     userId, albumId, photo = getInputsFromMessage(serialisedMessage)
-    photo = GoogleMediaItem(mediaManager.get(photo["id"]))
-    
 
-    with DictCache("similarPhoto.json", "json") as similarPhotoCache:
-        similarPhotos = similarPhotoCache.getForKey(photo.id())
-        if similarPhotos != None:
-            return
+    googleService = getGooglePhotoService(userId)
+    mediaManager = Media(googleService)
+    photo = GoogleMediaItem(mediaManager.get(photo["id"]))
 
     idsOfSimilarPhotos = []
     with DictCache("photoCache.json") as photoCache:
         photoData = photoCache.getForKey(photo.id())
         if photoData.hash == None:
-            hash = getPhotoHash(photo, mediaManager)
+            hash = getPhotoHash(photoData, mediaManager)
             photoData.hash = hashToString(hash)
-            photoCache.save(photo.id(), photo)
+            photoCache.save(photo.id(), photoData)
         else:
-            hash = stringToHash(photo.photoHash())
+            hash = stringToHash(photoData.photoHash())
 
         if hash == None:
             return
 
-        print(f"processing similar photos for photoId: {photo.id()}")
-        idsOfSimilarPhotos = getIdsOfSimilarPhotos(photo, photoCache, hash)        
+        print(f" [>] processing similar photos for photoId: {photoData.name}")
+        idsOfSimilarPhotos = getIdsOfSimilarPhotos(photoData, photoCache, hash)        
         if idsOfSimilarPhotos == None or len(idsOfSimilarPhotos) == 0:
+            print(f" [*] Didn't find any similar photo")
             return
 
-    print(f"Found {len(idsOfSimilarPhotos)} similar photos to photoId {photo.id()}")
+    print(f" [ ] Found {len(idsOfSimilarPhotos)} similar photos to photoId {photo.id()}")
     with DictCache("similarPhoto.json", "json") as similarPhotoCache:
         similarPhotoCache.save(photo.id(), idsOfSimilarPhotos)
 
 def getIdsOfSimilarPhotos(photo, photoCache, hash):
     idsOfSimilarPhotos = []
-    for similarPhotoId, similarPhoto in photoCache.get():
-        if similarPhotoId == photo.id() or similarPhoto.photoHash() == None:
+    for photoIdToCompareWith, photoToCompareWith in photoCache.get():
+        if photoIdToCompareWith == photo.id or photoToCompareWith.photoHash() == None:
             continue
 
-        similarPhotoHash = stringToHash(similarPhoto.photoHash())
-        diff = similarPhotoHash - hash
-        diffPercentage = (10 - diff) / 10 * 100
-        if diffPercentage < 60:
+        hashOfPhotoToCompareWith = stringToHash(photoToCompareWith.photoHash())
+        diff = hashOfPhotoToCompareWith - hash
+        diffPercentage = (100 - diff)
+        print(f" [%] Comparing photo {photo.name} with {photoToCompareWith.name} => {diff} <> {diffPercentage}")
+        if diffPercentage < 80:
             continue
-        idsOfSimilarPhotos.append(similarPhotoId)
+        idsOfSimilarPhotos.append(photoIdToCompareWith)
     return idsOfSimilarPhotos
 
-def getPhotoHash(photo, mediaManager):
-    if "hash" in photo and photo["hash"] != None:
-        return stringToHash(photo["hash"])
+def getPhotoHash(photoData, mediaManager):
+    if photoData.hash != None:
+        return stringToHash(photoData.hash)
 
-    base_photo = GoogleMediaItem(mediaManager.get(photo["id"]))
+    base_photo = GoogleMediaItem(mediaManager.get(photoData.id))
+    print(f"Downloading photo {photoData.id}")
     raw_photo = downloadPhoto(base_photo)
     hash = imagehash.average_hash(raw_photo)
     raw_photo.close()
@@ -79,6 +77,7 @@ def getPhotoHash(photo, mediaManager):
     return hash
 
 def getInputsFromMessage(serialisedMessage):
+    serialisedMessage = serialisedMessage.decode()
     message = json.loads(serialisedMessage)
     userId = message["userId"]
     albumId = message["albumId"]
@@ -103,7 +102,7 @@ def stringToHash(stringHash):
 
 
 def downloadPhoto(photo):
-    photo_filename = photo["filename"]
+    photo_filename = photo.filename()
     download_path = os.path.join(DOWNLOAD_FOLDER, photo_filename)
 
     if not os.path.exists(download_path):

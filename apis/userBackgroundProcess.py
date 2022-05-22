@@ -4,15 +4,11 @@ from gphotospy.album import *
 from apis.AuthorizeWithGoogle import getGooglePhotoService
 from cacheservice import DictCache
 from loadalbumphotos import cachePhotoMetaData
-from apis.messagebus import Bus, USER_QUEUE, PHOTO_QUEUE
+from apis.messagebus import USER_QUEUE, PHOTO_QUEUE
+from apis.messagebus import MessageBus
+Bus = MessageBus()
 
 ALBUM_PROCESS_STATUS_FILE = "albumProcessStatus.json"
-
-
-def registerMessageListener(channel):
-    channel.basic_consume(
-        queue=USER_QUEUE, on_message_callback=processUser, auto_ack=True)
-
 
 class AlbumProcess:
     def __init__(self, albumId, albumName, status) -> None:
@@ -20,6 +16,10 @@ class AlbumProcess:
         self.albumName = albumName
         self.status = status
 
+def registerMessageListener(channel):
+    print(f"Registering listener processUser")
+    channel.basic_consume(
+        queue=USER_QUEUE, on_message_callback=processUser, auto_ack=True)
 
 def getAllAlbumsFromGoogle(service):
     album_manager = Album(service)
@@ -33,15 +33,14 @@ def getAllAlbumsFromGoogle(service):
 
 def cacheAlbumProcessStatus(googleService, cacheService):
     for album in getAllAlbumsFromGoogle(googleService):
-        print(album.get('id'), album.get('title'))
-
         albumProcess = AlbumProcess(album.get('id'), album.get('title'), False)
         cacheService.save(album.get('id'), albumProcess)
         yield albumProcess
 
 
-def processUser(userId):
+def processUser(ch, method, properties, userId):
     status = None
+    userId = userId.decode() 
     with DictCache("userProcessCache.json") as userProcessCache:
         status = userProcessCache.getForKey(userId)
         if status == True:
@@ -51,6 +50,10 @@ def processUser(userId):
             userProcessCache.save(userId, False)
 
     googleService = getGooglePhotoService(userId)
+    if googleService == None:
+        print(f"Couldn't create googleService for userId: {userId}")
+        return
+
     with DictCache(ALBUM_PROCESS_STATUS_FILE) as albumProcessStatus:
         albumProcess: AlbumProcess
         for albumProcess in cacheAlbumProcessStatus(googleService, albumProcessStatus):
@@ -67,9 +70,6 @@ def processUser(userId):
                         default=lambda o: o.__dict__,
                         sort_keys=True)
                     Bus.publish(PHOTO_QUEUE, message)
-                    break
-            break
-
             albumProcess.status = True
             albumProcessStatus.save(albumProcess.albumId, albumProcess)
     print("Published all albums")

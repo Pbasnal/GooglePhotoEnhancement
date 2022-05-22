@@ -2,17 +2,22 @@ import google
 import google_auth_oauthlib.flow
 import config
 
-from app import db, app
+from app import app, db
 from flask import redirect, url_for, session, request
 from flask_restful import Resource
 from googleapiclient.discovery import build
-
+from sqlalchemy.orm.exc import NoResultFound
 
 def getGooglePhotoService(userId):
 
     from UserAuth import UserOauth
+    try:
+        user = UserOauth.query.filter(UserOauth.id == userId).one()
+    except NoResultFound as e:
+        print(f"No user found with id {userId}") 
+        print(f"Query: {UserOauth.query.filter(UserOauth.id == userId)}")
+        return None
 
-    user = UserOauth.query.filter(UserOauth.id == userId).one()
     service_object = {
         "secrets": config.CLIENT_SECRET_FILE
     }

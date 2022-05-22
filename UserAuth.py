@@ -1,6 +1,4 @@
-from typing import DefaultDict
 from app import db
-import json
 
 class UserOauth(db.Model):
     id = db.Column(db.String(50), primary_key=True)
@@ -29,14 +27,14 @@ class UserOauth(db.Model):
             scopes.append(scope)
 
         newUserOauth = UserOauth(
-            id = userInfo["id"],
-            email = userInfo["email"],
-            verified_email = userInfo["verified_email"],
-            name = userInfo["name"],
-            given_name = userInfo["given_name"],
-            family_name = userInfo["family_name"],
-            picture = userInfo["picture"],
-            locale = userInfo["locale"],
+            id=userInfo["id"],
+            email=userInfo["email"],
+            verified_email=userInfo["verified_email"],
+            name=userInfo["name"],
+            given_name=userInfo["given_name"],
+            family_name=userInfo["family_name"],
+            picture=userInfo["picture"],
+            locale=userInfo["locale"],
 
             token=credentials.token,
             refresh_token=credentials.refresh_token,

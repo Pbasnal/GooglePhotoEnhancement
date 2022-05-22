@@ -1,13 +1,14 @@
 from flask_restful import Resource
 from flask import make_response, redirect, render_template, session, request, url_for
 from photoEnhancer import loadListOfAlbumsFromCache
-from googleapiclient.discovery import build
 
-from app import api
 from apis.AuthorizeWithGoogle import getGooglePhotoService
 
-
 class PhotoAlbums(Resource):
+    def __init__(self, api):
+        self.__name__ = "photoalbums"
+        self.api = api
+
     def get(self):
         if 'user_id' not in session:
             return "User not found", 400
@@ -29,9 +30,9 @@ class PhotoAlbums(Resource):
             or len(request.form) == 0 \
             or "albumId" not in request.form:
 
-            return redirect(api.url_for(PhotoAlbums))
+            return redirect(self.api.url_for(PhotoAlbums))
     
 
         print(request.form["albumId"])
 
-        return redirect(api.url_for(PhotoAlbums))
+        return redirect(self.api.url_for(PhotoAlbums))
