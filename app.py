@@ -24,6 +24,7 @@ def getAuthorizedService():
 
 class HelloWorld(Resource):
     def get(self):
+        print("Hello world")
         return {"hello": "world"}
 
 # class AuthorizeWithGoogle(Resource):
