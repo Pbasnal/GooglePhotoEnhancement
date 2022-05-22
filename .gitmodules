@@ -1,0 +1,3 @@
+[submodule "DPED"]
+	path = DPED
+	url = git@github.com:aiff22/DPED.git
