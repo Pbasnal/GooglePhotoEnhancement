@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Google Photo Fix</title>
+        <script src="js/jquery-3.6.0.min.js"></script>
+        <script src="js/popup.js"></script>
+        <script src="js/similar-images.js"></script>
+        <script src="js/main.js"></script>
+        <link href="css/google-font.css" rel="stylesheet"/>
+        <link href="css/font-awesome.min.css" rel="stylesheet"/>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+              rel="stylesheet"/>
+    </head>
+    <body class="m-3 p-3">
+        <div class="sidebar" id="wait" style="display: block">
+            <span class="text-nowrap">Checking if you are logged in...</span>
+        </div>
+        <div class="sidebar" id="loggin_prompt" style="display: none">
+            <input class="btn-primary"
+                   type="button"
+                   id="google_login"
+                   name="google_login"
+                   value="Login with Google"/>
+        </div>
+        <div class="sidebar text-nowrap" id="logged_user" style="display: none">
+            <div class="sidebar-text d-flex flex-column h-100 justify-content-center text-center">
+                <img class="mx-auto d-block w-75 bg-primary img-fluid rounded-circle mb-4 p-1"
+                     id="user_picture"
+                     src="img/profile.jpg"
+                     alt="Image"/>
+                <h1 class="font-weight-bold" id="user_name">User Name</h1>
+                <button type="button" class="btn btn-sm btn-block btn-primary m-auto" id="similar_image_refresh">
+                    <span id="album_stats">Album Stats</span>
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         width="16"
+                         height="16"
+                         fill="currentColor"
+                         class="bi bi-arrow-counterclockwise"
+                         viewBox="0 0 16 16"
+                         data-darkreader-inline-fill=""
+                         style="--darkreader-inline-fill:currentColor;">
+                        <path fill-rule="evenodd"
+                              d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2v1z"></path>
+                        <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466z"></path>
+                    </svg>
+                </button>
+                <a href="" class="btn btn-sm btn-block btn-primary mt-auto" id="load_from_google">Load From Google</a>
+                <a href="" class="btn btn-sm btn-block btn-danger mt-1" id="logout">Logout</a>
+            </div>
+        </div>
+    </body>
+</html>

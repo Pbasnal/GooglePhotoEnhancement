@@ -1,0 +1,24 @@
+.similarImagesButton {
+    font-family: "Google Sans",Roboto,Arial,sans-serif;
+    /* line-height: 1.5rem; */
+    font-size: 1.125rem;
+    letter-spacing: 0;
+    /* font-weight: 400; */
+    bottom: 0;
+    /* color: #fff; */
+    /* height: 24px; */
+    border: 1px solid #3498db;
+    /* left: 0; */
+    overflow: hidden;
+    background-color: rgba(98, 98, 98, 0.6);
+    /* padding: 28px 16px 12px; */
+    box-shadow: 0 6px 6px rgba(0, 0, 0, 0.6);
+    position: absolute;
+    right: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    z-index: 1;
+}
+/* body {
+    background: url('https://media.giphy.com/media/3o7WTDJQVuYwhhuLhC/giphy.gif') !important;
+} */

@@ -1,0 +1,37 @@
+{
+    "manifest_version": 3,
+    "name": "hello world",
+    "version": "1.0",
+    "description": "A basic extension",
+    "icons": {
+        "128": "icon128.png",
+        "48": "icon48.png",
+        "16": "icon16.png"
+    },
+    "action": {
+        "default_icon": "icon16.png",
+        "default_popup": "popup.html"
+    },
+    "host_permissions": [
+        "https://localhost:8080/"
+    ],
+    "permissions": [
+        "cookies"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://photos.google.com/*"
+            ],
+            "css": [
+                "css/content.css"
+            ],
+            "js": [
+                "js/jquery-3.6.0.min.js",
+                "js/content.js",
+                "js/similar-images.js",
+                "js/main.js"
+            ]
+        }
+    ]
+}
