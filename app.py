@@ -19,7 +19,7 @@ def getAuthorizedService():
     try:
         if not os.path.exists(CLIENT_SECRET_FILE):
             with open(CLIENT_SECRET_FILE, "w") as f:
-                f.write(os.environ['CLIENT_SECRET_ENV'])
+                f.write(os.environ[CLIENT_SECRET_ENV])
             
         return authorize.init(CLIENT_SECRET_FILE)
     except :
