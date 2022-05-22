@@ -1,0 +1,22 @@
+.card-body {
+    min-height: 300px;
+    min-width: 300px;
+    margin-right: 5px;
+}
+
+.card-block {
+    min-height: 500px;
+    width: 100%;
+}
+
+.text-overlay-container {
+    position: relative;
+    text-align: center;
+    
+}
+
+.bottom-left {
+    position: absolute;
+    bottom: 8px;
+    left: 16px;
+}
