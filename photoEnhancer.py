@@ -41,11 +41,12 @@ def selectAnAlbumToEnhance(albumIdMap):
 
 
 def loadPhotoIdsOfAlbum(googleService, albumId, force_refresh_photoid_map=False):
-    print(f"albumId> {albumId}") 
+    print(f"albumId> {albumId}")
     if force_refresh_photoid_map:
         with FileCacheService("albumPhotoMapCache.json", 'a+') as albumPhotoMapCacheService:
             with FileCacheService("photoCache.json", 'w') as photoCacheService:
-                cachePhotoMetaOfAlbum(googleService, albumPhotoMapCacheService, photoCacheService, albumId)
+                cachePhotoMetaOfAlbum(
+                    googleService, albumPhotoMapCacheService, photoCacheService, albumId)
 
     with FileCacheService("albumPhotoMapCache.json", 'r') as albumPhotoMapCacheService:
         for line in albumPhotoMapCacheService.get():
@@ -60,12 +61,13 @@ def getAlbumIdMap(googleService):
     albumIdMap = loadListOfAlbumsFromCache(googleService)
     if bool(albumIdMap) == False:
         albumIdMap = loadListOfAlbumsFromCache(googleService, True)
-    
+
     if bool(albumIdMap) == False:
         print(f"No album Id to process photos of")
         return None
-    
+
     return selectAnAlbumToEnhance(albumIdMap)
+
 
 def getPhotoIds(googleService, ablumId):
     photoIds = loadPhotoIdsOfAlbum(googleService, ablumId)
@@ -74,24 +76,34 @@ def getPhotoIds(googleService, ablumId):
 
     if len(photoIds) == 0:
         print("Photos of selected album doesn't have any photos")
-    
+
     return photoIds
 
 
 def enhancePhoto(photo: GoogleMediaItem):
-    download_path = os.path.join(DOWNLOAD_FOLDER, photo.filename())
+
+    photo_filename = photo.filename()
+    if  photo.mimeType().find("jpeg") != -1:
+        photo_filename = photo_filename.replace("NEF", "jpg")
+    
+    download_path = os.path.join(DOWNLOAD_FOLDER, photo_filename)
 
     with open(download_path, 'wb') as output:
         output.write(photo.raw_download())
 
+    if download_path == None:
+        print(f"Failed to download the photo {photo.filename()}")
+        return
+
     # * running the model as a separate process because calling the function directly
     # * fails for images of different dimensions. Once that issue is fixed, we call
-    # * directly calll the processPhoto method.    
+    # * directly calll the processPhoto method.
     print(f"\n\n Enhancing photo {photo.filename()}")
     command = "python runmodel.py model=iphone_orig test_subset=full".split()
     process = subprocess.run(command, capture_output=True, text=True)
 
-    print(f"runmodel stdout> {process.stdout} \nrunmodel stderr> {process.stderr}\n")
+    print(
+        f"runmodel stdout> {process.stdout} \nrunmodel stderr> {process.stderr}\n")
     print(f"runmodel returncode> {process.returncode}")
 
     enhancedPhotoPath = os.path.join(ENHANCED_PHOTO_FOLDER, photo.filename())
@@ -107,13 +119,16 @@ def main():
         exit()
 
     photoIds = getPhotoIds(googleService, albumIdToEnhance)
-    if len(photoIds) == 0:    
+    if len(photoIds) == 0:
         exit()
 
-    mediaManager  = Media(googleService)
+    mediaManager = Media(googleService)
     for photoId in photoIds:
-        photo = GoogleMediaItem(mediaManager.get(photoId))
+        base_photo = mediaManager.get(photoId)
+        photo = GoogleMediaItem(base_photo)
         enhancePhoto(photo)
+        break
+
 
 if __name__ == "__main__":
     main()

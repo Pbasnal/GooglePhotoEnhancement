@@ -1,10 +1,15 @@
 from gphotospy.media import MediaItem
 
 class GoogleMediaItem(MediaItem):
-   def __init__(self, media_object):
+     def __init__(self, media_object):
         """ GoogleMediaItem Constructor """
         super().__init__(media_object)
 
-   def id(self):
+     def id(self):
         """ Gets the MediaItem's id """
         return self.val.get("id")
+     
+     def mimeType(self):
+          """ Gets the MediaItem's mime type """
+          return self.val.get("mimeType")
+  
