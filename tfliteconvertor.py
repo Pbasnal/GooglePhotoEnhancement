@@ -1,3 +1,16 @@
+# import tensorflow as tf
+
+# saved_model_dir = "DPED/models_orig"
+# # Convert the model
+# converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir) # path to the SavedModel directory
+# tflite_model = converter.convert()
+
+# # Save the model.
+# with open('model.tflite', 'wb') as f:
+#   f.write(tflite_model)
+
+
+
 import rawpy
 import imageio
 from PIL import Image, ImageEnhance
@@ -23,26 +36,12 @@ def processPhoto(arguments, image_scale=1):
 
     test_dir = dped_dir + \
         phone.replace("_orig", "") + "/test_data/full_size_test_images/"
-    photo_name_with_extension, photo_data = getPhotoToEnhance(test_dir)
+    _, photo_data = getPhotoToEnhance(test_dir)
 
-    if photo_name_with_extension == None:
-        return
-        
-    photo_name = photo_name_with_extension.rsplit(".", 1)[0]
-    output_image = "DPED/visual_results/" + photo_name + "_enhanced.jpg"
-
-    print(f"Applying DPED enhancements on {photo_name_with_extension}")
-    enhanced_image = runModelEnhancement(config,
+    saveModel(config,
                                          photo_data,
                                          image_scale,
-                                         phone,
-                                         photo_name_with_extension)
-
-    print(f"Applying custom enhancements on {photo_name_with_extension}")
-    enhanced_image = applyCustomEnhancements(output_image, enhanced_image)
-
-    print(f"Writing the photo location: {output_image}")
-    imageio.imwrite(output_image, enhanced_image)
+                                         phone)
 
 
 def applyCustomEnhancements(output_image_path, image):
@@ -62,7 +61,7 @@ def applyCustomEnhancements(output_image_path, image):
     return enhance_image
 
 
-def runModelEnhancement(config, photo_data, image_scale, phone, photo_name_with_extension):
+def saveModel(config, photo_data, image_scale, phone):
     IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_SIZE = getImageDimensions(
         photo_data, image_scale)
 
@@ -72,21 +71,23 @@ def runModelEnhancement(config, photo_data, image_scale, phone, photo_name_with_
         saver = tf.compat.v1.train.Saver()
         saver.restore(sess, "DPED/models_orig/" + phone)
 
-        print("#>  Testing original " + phone.replace("_orig", "") +
-              " model, processing image " + photo_name_with_extension)
-
         model_input_image = getModelInput(
             IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_SIZE, photo_data)
-        # get enhanced image
-        print(f"#>  Starting model execution (h, w, s)",
-              IMAGE_HEIGHT, IMAGE_WIDTH, IMAGE_SIZE)
+
         enhanced_2d = sess.run(
             model, feed_dict={model_input: model_input_image})
+        
         enhanced_image = np.reshape(
             enhanced_2d, [IMAGE_HEIGHT, IMAGE_WIDTH, 3])
-        print(f"#>  Model completed")
+        
+        converter = tf.compat.v1.lite.TFLiteConverter.from_session(sess, model_input_image, enhanced_image)
 
-    return enhanced_image
+        tflite_model = converter.convert()
+
+        # Save the model.
+        with open('test_model.tflite', 'wb') as f:
+            f.write(tflite_model)
+
 
 
 def getModelInput(image_height, image_width, image_size, photo_data):
@@ -109,23 +110,23 @@ def getModel(image_height, image_width, image_size):
 # Currently this method will process 1 photo at a time.
 def getPhotoToEnhance(test_dir):
     test_photos = [f for f in os.listdir(
-        test_dir) if os.path.isfile(test_dir + f) and f != ".DS_Store"]
+        test_dir) if os.path.isfile(test_dir + f)]
     if len(test_photos) <= 0:
         return None, None
-    print(f"Photos to Enhance: {test_photos}" )
+
     for photo in test_photos:
         print(f"#>  Input image: {test_dir + photo}")
         if photo.endswith(".NEF"):
             raw = rawpy.imread(test_dir + photo)
             print(test_dir + photo)
             rgb = raw.postprocess()
-        else:
+            print(f"\n\n#>  rbg shape: {rgb.shape} {rgb.dtype}")
+        elif photo.endswith(".jpg") or photo.endswith(".jpeg") or photo.endswith(".png"):
             rgb = imageio.imread(test_dir + photo)
+        else:
+            continue
 
-        print(f"\n\n#>  rbg shape: {rgb.shape} {rgb.dtype}")
         return photo, rgb
-
-    return None, None
 
 
 def getImageDimensions(photo_data, image_scale):
