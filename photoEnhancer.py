@@ -1,9 +1,10 @@
 import json
 import subprocess
 import shutil
+from PhotoData import PhotoData
 from GoogleMediaItem import GoogleMediaItem
 from authorizegoogle import getAuthorizedService
-from cacheservice import FileCacheService
+from cacheservice import DictCache
 from loadalbums import cacheAlbumIds
 from loadalbumphotos import cachePhotoMetaOfAlbum
 from gphotospy.media import *
@@ -13,14 +14,15 @@ ENHANCED_PHOTO_FOLDER = "DPED/dped/iphone/test_data"
 
 def loadListOfAlbumsFromCache(googleService, force_refresh_cache=False):
     if force_refresh_cache:
-        with FileCacheService("albumCache.json", 'a+') as albumCacheService:
+        with DictCache("albumCache.json") as albumCacheService:
             cacheAlbumIds(googleService, albumCacheService)
 
     albumTitleIdMap = dict()
-    with FileCacheService("albumCache.json", 'r') as albumCacheService:
-        for line in albumCacheService.get():
-            album_info = json.loads(line)
-            albumTitleIdMap[album_info.get("data")] = album_info.get("id")
+    with DictCache("albumCache.json") as albumCacheService:
+        for id, data in albumCacheService.get():
+            if not id.strip():
+                continue
+            albumTitleIdMap[data] = id
 
     return albumTitleIdMap
 
@@ -43,16 +45,17 @@ def selectAnAlbumToEnhance(albumIdMap):
 def loadPhotoIdsOfAlbum(googleService, albumId, force_refresh_photoid_map=False):
     print(f"albumId> {albumId}")
     if force_refresh_photoid_map:
-        with FileCacheService("albumPhotoMapCache.json", 'a+') as albumPhotoMapCacheService:
-            with FileCacheService("photoCache.json", 'w') as photoCacheService:
+        with DictCache("albumPhotoMapCache.json") as albumPhotoMapCache:
+            with DictCache("photoCache.json") as photoCache:
                 cachePhotoMetaOfAlbum(
-                    googleService, albumPhotoMapCacheService, photoCacheService, albumId)
+                    googleService, albumPhotoMapCache, photoCache, albumId)
 
-    with FileCacheService("albumPhotoMapCache.json", 'r') as albumPhotoMapCacheService:
-        for line in albumPhotoMapCacheService.get():
+    with DictCache("albumPhotoMapCache.json") as albumPhotoMapCacheService:
+        for cacheKey, line in albumPhotoMapCacheService.get():
+            # print(f"\nKey: {cacheKey} \n<> Data: {line}")
             albumPhotoMap = json.loads(line)
-            if albumPhotoMap.get("id") == albumId:
-                return albumPhotoMap.get("data")
+            if cacheKey == albumId:
+                return albumPhotoMap
 
     return []
 
@@ -81,7 +84,6 @@ def getPhotoIds(googleService, ablumId):
 
 
 def enhancePhoto(photo: GoogleMediaItem):
-
     photo_filename = photo.filename()
     if  photo.mimeType().find("jpeg") != -1:
         photo_filename = photo_filename.replace("NEF", "jpg")
@@ -106,6 +108,15 @@ def enhancePhoto(photo: GoogleMediaItem):
         f"runmodel stdout> {process.stdout} \nrunmodel stderr> {process.stderr}\n")
     print(f"runmodel returncode> {process.returncode}")
 
+    photoData = PhotoData(photo.id(), 
+                        photo_filename,
+                        photo.metadata()["height"],
+                        photo.metadata()["width"],
+                        True)
+    with DictCache("photoCache.json") as photoCache:
+        # print(photoData.toString())
+        photoCache.save(photo.id(), photoData)
+
     enhancedPhotoPath = os.path.join(ENHANCED_PHOTO_FOLDER, photo.filename())
     shutil.move(download_path, enhancedPhotoPath)
 
@@ -120,6 +131,7 @@ def main():
 
     photoIds = getPhotoIds(googleService, albumIdToEnhance)
     if len(photoIds) == 0:
+        print("There are no photos for this album")
         exit()
 
     mediaManager = Media(googleService)

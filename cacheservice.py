@@ -1,10 +1,39 @@
+import pickle
+
 class CacheService:
-    def save(self, id, data):
+    def save(self, id, data, isJson=False):
         data = f"{{ \"id\": \"{id}\", \"data\": \"{data}\"    }}"
         print(data)
     
     def get(self):
         return ""
+
+class DictCache(CacheService):
+    def __init__(self, cacheFilePath):
+        self.cacheFilePath = cacheFilePath
+        self.cache = dict()
+
+    def __enter__(self):
+        with open(self.cacheFilePath, "rb") as cache:
+            cachedData = cache.read()
+            if not cachedData.strip():
+                return self
+            self.cache = pickle.loads(cachedData)
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        with open(self.cacheFilePath, "wb") as cacheFile:
+            # print(f"Data to serialize {self.cache}")
+            serializedData = pickle.dumps(self.cache)
+            cacheFile.write(serializedData)
+
+    def get(self):
+        for cacheKey in self.cache.keys():
+            yield cacheKey, self.cache[cacheKey]
+    
+    def save(self, id, data, is_json=False):
+        self.cache[id] = data
+
 
 class FileCacheService(CacheService):
 
@@ -33,8 +62,6 @@ class FileCacheService(CacheService):
 
     def save(self, id, data, is_json=False):
         if is_json:
-            data = f"{{ \"id\": \"{id}\", \"data\": {data}}}\n"
+            self.cacheFile.write(data)
         else:
-            data = f"{{ \"id\": \"{id}\", \"data\": \"{data}\"}}\n"
-
-        self.cacheFile.write(data)
+            self.cacheFile.write(pickle.dumps(data))
