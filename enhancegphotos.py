@@ -3,15 +3,13 @@ import requests
 import subprocess
 import os
 import shutil
+from runmodel import processPhoto
 from gphotospy import authorize
 from gphotospy.album import *
 from gphotospy.media import *
 
 CLIENT_SECRET_FILE = "google_secret_desktop.json"
 service = authorize.init(CLIENT_SECRET_FILE)
-
-DOWNLOAD_FOLDER = "DPED/dped/iphone/test_data/full_size_test_images"
-PROCESSED_FOLDER = "DPED/dped/iphone/test_data"
 
 def download_file(url: str, destination_folder: str, file_name: str):
     response = requests.get(url)
@@ -26,6 +24,7 @@ def download_file(url: str, destination_folder: str, file_name: str):
 
 media_manager = Media(service)
 photo_iterator = media_manager.search(MEDIAFILTER.PHOTO)
+image_scale = 1
 i = 0
 for photo in photo_iterator:
     photo_name = photo.get("filename")
@@ -34,9 +33,17 @@ for photo in photo_iterator:
     photo_type = photo.get("mediaMetadata").get("mimeType")
     photo_base_url = photo.get("baseUrl")
 
-    download_file(photo_base_url + "=d", DOWNLOAD_FOLDER, photo_name)
-    # p = subprocess.Popen("python test_model.py model=iphone_orig test_subset=full".split())
-    command = "python loadnef.py model=iphone_orig test_subset=full".split()
+    download_folder = "DPED/dped/iphone/test_data/full_size_test_images"
+    test_folder = "DPED/dped/iphone/test_data"
+
+    download_file(photo_base_url + "=d", download_folder, photo_name)
+
+    # processPhoto("model=iphone_orig test_subset=full".split(), image_scale)
+
+    # * running the model as a separate process because calling the function directly
+    # * fails for images of different dimensions. Once that issue is fixed, we call
+    # * directly calll the processPhoto method.
+    command = "python runmodel.py model=iphone_orig test_subset=full".split()
     process = subprocess. run(command, capture_output=True, text=True)
 
     print(f"{photo_name} | {photo_width}x{photo_height} | {photo_type}")
@@ -45,8 +52,8 @@ for photo in photo_iterator:
     print(process.stdout)
     print(process.stderr)
 
-    file_path = os.path.join(DOWNLOAD_FOLDER, photo_name)
-    test_path = os.path.join(PROCESSED_FOLDER, photo_name)
+    file_path = os.path.join(download_folder, photo_name)
+    test_path = os.path.join(test_folder, photo_name)
     shutil.move(file_path, test_path)
 
     i += 1

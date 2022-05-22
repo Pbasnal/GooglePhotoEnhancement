@@ -1,2 +1,9 @@
-google_secret_desktop.json
 venv/*
+__pycache__/*
+*.NEF
+*.jpg
+*.png
+*.DS_Store
+*.token
+*.log
+google_secret_desktop*
