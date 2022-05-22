@@ -27,24 +27,24 @@ class HelloWorld(Resource):
         print("Hello world")
         return {"hello": "world"}
 
-# class AuthorizeWithGoogle(Resource):
-#     def get(self):
-#         return getAuthorizedService()
+class AuthorizeWithGoogle(Resource):
+    def get(self):
+        return getAuthorizedService()
 
-# class PhotoAlbums(Resource):
-#     def get(self):
-#         googleService = getAuthorizedService()
-#         albumIdMap = loadListOfAlbumsFromCache(googleService)
-#         if bool(albumIdMap) == False:
-#             albumIdMap = loadListOfAlbumsFromCache(googleService, True)
+class PhotoAlbums(Resource):
+    def get(self):
+        googleService = getAuthorizedService()
+        albumIdMap = loadListOfAlbumsFromCache(googleService)
+        if bool(albumIdMap) == False:
+            albumIdMap = loadListOfAlbumsFromCache(googleService, True)
 
-#         if bool(albumIdMap) == False:
-#             print(f"No album Id to process photos of")
+        if bool(albumIdMap) == False:
+            print(f"No album Id to process photos of")
             
-#         return albumIdMap
+        return albumIdMap
 
-# api.add_resource(AuthorizeWithGoogle, '/auth')
-# api.add_resource(PhotoAlbums, '/albums')
+api.add_resource(AuthorizeWithGoogle, '/auth')
+api.add_resource(PhotoAlbums, '/albums')
 api.add_resource(HelloWorld, '/')
 
 if __name__ == '__main__':
