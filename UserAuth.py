@@ -70,3 +70,10 @@ class UserOauth(db.Model):
 
     # def __repr__(self):
     #     return json.dumps(self, indent=1)
+
+    def getUser(userId):
+        getUserQuery = UserOauth.query.filter(UserOauth.id == userId)
+        if getUserQuery.first() is None:
+            return None
+        
+        return UserOauth.query.filter(UserOauth.id == userId).one()

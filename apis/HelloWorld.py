@@ -1,9 +1,10 @@
-from flask_restful import Resource, reqparse
-from flask import session, jsonify
+from flask_restful import Resource
+from flask import session, jsonify, redirect, url_for
 from cacheservice import DictCache
 from UserAuth import UserOauth
 from apis.messagebus import USER_QUEUE
 from apis.messagebus import MessageBus
+from apis.AuthorizeWithGoogle import AuthorizeWithGoogle
 Bus = MessageBus()
         
 class HelloWorld(Resource):
@@ -13,15 +14,17 @@ class HelloWorld(Resource):
 
         userId = session['user_id']
         print(f"Loading for user: {userId}")
-        user = UserOauth.query.filter(UserOauth.id == userId).one()
+        user = UserOauth.getUser(userId)
+        
+        if user is None:
+            return redirect("/auth")
+
         userProcessStatus = self.getUserStatus(userId)
         if userProcessStatus == True:
             return jsonify(user.serialize)
         elif userProcessStatus == None:
-            # Bus.publish(USER_QUEUE, userId)
+            Bus.publish(USER_QUEUE, userId)
             pass
-        # only for testing the below code is used
-        Bus.publish(USER_QUEUE, userId)
 
         return { "userId": userId, "processStatus": "In Progress"}, 202
 
