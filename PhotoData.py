@@ -7,6 +7,12 @@ class PhotoData(JSONEncoder):
         self.height = height
         self.width = width
         self.enhanced = enhanced
+        self.hash = None
+
+    def photoHash(self):
+        if not hasattr(self, "hash") or self.hash == None or self.hash == "":
+            return None 
+        return self.hash
 
     def toString(self):
         print(f"id: {self.id} name: {self.name} height: {self.height} width: {self.width} enhanced: {self.enhanced}")

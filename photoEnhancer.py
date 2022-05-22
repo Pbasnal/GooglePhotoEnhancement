@@ -13,11 +13,7 @@ from gphotospy.media import *
 DOWNLOAD_FOLDER = "DPED/dped/iphone/test_data/full_size_test_images"
 ENHANCED_PHOTO_FOLDER = "DPED/dped/iphone/test_data"
 
-def loadListOfAlbumsFromCache(googleService, force_refresh_cache=False):
-    if force_refresh_cache:
-        with DictCache("albumCache.json") as albumCacheService:
-            cacheAlbumIds(googleService, albumCacheService)
-
+def loadListOfAlbumsFromCache(googleService):
     albumTitleIdMap = dict()
     with DictCache("albumCache.json") as albumCacheService:
         for id, data in albumCacheService.get():
@@ -25,7 +21,15 @@ def loadListOfAlbumsFromCache(googleService, force_refresh_cache=False):
                 continue
             albumTitleIdMap[data] = id
 
+    if bool(albumTitleIdMap) == True:
+        return albumTitleIdMap
+
+    with DictCache("albumCache.json") as albumCacheService:
+        for album in cacheAlbumIds(googleService, albumCacheService):
+            albumTitleIdMap[album.get('title')] = album.get('id')
+    
     return albumTitleIdMap
+
 
 
 def selectAnAlbumToEnhance(albumIdMap):
@@ -62,9 +66,6 @@ def loadPhotoIdsOfAlbum(googleService, albumId, force_refresh_photoid_map=False)
 
 def getAlbumIdMap(googleService):
     albumIdMap = loadListOfAlbumsFromCache(googleService)
-    if bool(albumIdMap) == False:
-        albumIdMap = loadListOfAlbumsFromCache(googleService, True)
-
     if bool(albumIdMap) == False:
         print(f"No album Id to process photos of")
         return None

@@ -17,27 +17,29 @@ def getAllPhotosFromGoogle(service, album_id):
         yield media_item
 
 
-def cachePhotoIds(googleService, cacheService : CacheService, album_id):
+def cachePhotoMetaData(googleService, cacheService : CacheService, album_id):
     for googlePhoto in getAllPhotosFromGoogle(googleService, album_id):
-
         photoData = PhotoData(googlePhoto.id(), 
                     googlePhoto.filename(),
                     googlePhoto.metadata()["height"],
                     googlePhoto.metadata()["width"],
                     False)
+        
+        if cacheService.getForKey(googlePhoto.id()) != None:
+            yield photoData
 
         cacheService.save(photoData.id, photoData)
 
-        yield googlePhoto
+        yield photoData
 
 def cachePhotoMetaOfAlbum(googleService, albumPhotoCache, photoCache, album_id):
     print("Starting photo caching")
 
     photoIds = []
-    for googlePhoto in cachePhotoIds(googleService, photoCache, album_id):
+    for googlePhoto in cachePhotoMetaData(googleService, photoCache, album_id):
         photoIds.append(googlePhoto.id())
     
-    albumPhotoCache.save(album_id, json.dumps(photoIds), is_json=True)
+    albumPhotoCache.save(album_id, json.dumps(photoIds))
 
 if __name__ == "__main__":
     googleService = getAuthorizedService()

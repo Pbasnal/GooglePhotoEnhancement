@@ -1,4 +1,5 @@
 import pickle
+import json
 
 
 class CacheService:
@@ -8,37 +9,66 @@ class CacheService:
 
     def get(self):
         return ""
+    
+    def getForKey(self, key):
+        return ""
 
 
-class DictCache(CacheService):
-    def __init__(self, cacheFilePath):
-        with open(cacheFilePath, "ab+") as _:
+class DictCache(CacheService, ):
+
+    def __init__(self, cacheFilePath, serializer='pickle'):
+        self.serializer = serializer
+        
+        with open(cacheFilePath, self.getOpenMode()) as _:
             # To create the file if it doesn't exists
             pass
         self.cacheFilePath = cacheFilePath
         self.cache = dict()
 
     def __enter__(self):
-        with open(self.cacheFilePath, "rb") as cache:
+        with open(self.cacheFilePath, self.getReadMode()) as cache:
             cachedData = cache.read()
             if not cachedData.strip():
                 return self
-            self.cache = pickle.loads(cachedData)
-            # print(self.cache)
-            # self.cache = json.loads(cachedData)
+            self.cache =  self.deserializeData(cachedData)
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        with open(self.cacheFilePath, "wb") as cacheFile:
-            serializedData = pickle.dumps(self.cache)
+        with open(self.cacheFilePath, self.getWriteMode()) as cacheFile:
+            serializedData = self.serializeData(self.cache)
             cacheFile.write(serializedData)
 
     def get(self):
         for cacheKey in self.cache.keys():
             yield cacheKey, self.cache[cacheKey]
 
-    def save(self, id, data, is_json=False):
+    def getForKey(self, key):
+        if key in self.cache:
+            return self.cache[key]
+        return None
+
+    def save(self, id, data):
         self.cache[id] = data
+    
+    def getOpenMode(self):
+        return "ab+" if self.serializer == 'pickle' else "a+"
+    def getReadMode(self):
+        return "rb" if self.serializer == 'pickle' else "r"
+    def getWriteMode(self):
+        return "wb" if self.serializer == 'pickle' else "w"
+    def serializeData(self, data):
+        if self.serializer == 'pickle':
+            return pickle.dumps(data)
+
+        return json.dumps(data)
+
+    def deserializeData(self, data):
+        if self.serializer == 'pickle':
+            return pickle.loads(data)
+
+        return json.loads(data)
+            
+
 
 class FileCacheService(CacheService):
 

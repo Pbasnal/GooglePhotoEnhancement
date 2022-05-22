@@ -1212,3 +1212,8 @@ experiments/GoogleOauth/googleenv/lib/python3.9/site-packages/werkzeug/wrappers/
 experiments/GoogleOauth/googleenv/lib/python3.9/site-packages/werkzeug/wrappers/request.py
 experiments/GoogleOauth/googleenv/lib/python3.9/site-packages/werkzeug/wrappers/response.py
 experiments/GoogleOauth/googleenv/lib/python3.9/site-packages/werkzeug/wrappers/user_agent.py
+albumProcessStatus.json
+photoTask.json
+similarPhoto.json
+userProcessCache.json
+userTask.json
