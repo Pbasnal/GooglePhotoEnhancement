@@ -76,3 +76,4 @@ Werkzeug==2.0.2
 wrapt==1.13.2
 zipp==3.6.0
 zope.interface==4.3.2
+gphotospy==0.2.1
