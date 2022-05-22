@@ -44,15 +44,17 @@ media_iterator = media_manager.search_album(str(selected_album_id))
 
 i = 0
 for media in media_iterator:
+    id = media["id"]
+    # print(media)
     media = MediaItem(media)
+    # print(media)
     if not media.is_photo():
         continue
 
     photo_name = media.filename()
     photo_height = media.metadata()["height"]
     photo_width = media.metadata()["width"]
-
-    print(f"{photo_name} | {photo_width}x{photo_height} ")
+    print(f"{id} | {photo_name} | {photo_width}x{photo_height} ")
     i += 1
     if i >= 2:
         break

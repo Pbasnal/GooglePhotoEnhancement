@@ -3,7 +3,6 @@ import requests
 import subprocess
 import os
 import shutil
-from runmodel import processPhoto
 from gphotospy import authorize
 from gphotospy.album import *
 from gphotospy.media import *
