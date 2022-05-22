@@ -10,13 +10,17 @@ from photoEnhancer import loadListOfAlbumsFromCache
 app = Flask(__name__)
 api = Api(app)
 
-
+CLIENT_SECRET_ENV = "GOOGLE_CLIENT_CREDENTIAL"
 DOWNLOAD_FOLDER = "DPED/dped/iphone/test_data/full_size_test_images"
 PROCESSED_FOLDER = "DPED/dped/iphone/test_data"
 CLIENT_SECRET_FILE = "google_web_secret.json"
 
 def getAuthorizedService():  
     try:
+        if not os.path.exists(CLIENT_SECRET_FILE):
+            with open(CLIENT_SECRET_FILE, "w") as f:
+                f.write(os.environ['HOME'])
+            
         return authorize.init(CLIENT_SECRET_FILE)
     except :
         if os.path.exists("photoslibrary_v1.token"):
